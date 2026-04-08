@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GalleryNest Dashboard</title>
+    <link rel="stylesheet" href="/dashboard.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="dashboard-topbar">
+        <div class="dashboard-brand">
+          <span class="brand-badge">GalleryNest</span>
+          <h1>Your client galleries</h1>
+          <p>
+            Deliver beautiful galleries, protect your work, and give clients a
+            polished experience.
+          </p>
+        </div>
+
+        <div class="topbar-actions">
+          <p id="session-status">Checking session...</p>
+          <button id="logout-btn" type="button">Logout</button>
+        </div>
+      </header>
+
+      <section class="dashboard-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Create a new gallery</h2>
+            <p>Start with a title and begin uploading images in seconds.</p>
+          </div>
+        </div>
+
+        <div class="create">
+          <input id="title" type="text" placeholder="Enter gallery title" />
+          <button id="create-gallery-btn" type="button">Create Gallery</button>
+        </div>
+
+        <div id="status" class="status-text">Loading galleries...</div>
+        <div id="galleries"></div>
+      </section>
+    </div>
+
+    <script src="/dashboard.js"></script>
+  </body>
+</html>

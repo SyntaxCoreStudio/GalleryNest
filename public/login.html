@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | GalleryNest</title>
+    <link rel="stylesheet" href="/auth.css" />
+  </head>
+  <body>
+    <a href="/" class="back-home">← Back to Home</a>
+
+    <div class="auth-card">
+      <span class="auth-badge">GalleryNest</span>
+      <h1>Welcome back</h1>
+      <p>
+        Log in to manage your galleries and deliver a premium client experience.
+      </p>
+
+      <form id="login-form" class="auth-form">
+        <input
+          type="email"
+          id="email"
+          placeholder="Email address"
+          required
+          autocomplete="email"
+        />
+        <input
+          type="password"
+          id="password"
+          placeholder="Password"
+          required
+          autocomplete="current-password"
+        />
+        <button type="submit">Log In</button>
+      </form>
+
+      <p id="message"></p>
+      <p class="auth-link">
+        New here? <a href="/signup.html">Create an account</a>
+      </p>
+    </div>
+
+    <script src="/js/login.js"></script>
+  </body>
+</html>

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GalleryNest Gallery</title>
+    <link rel="stylesheet" href="/gallery.css" />
+  </head>
+
+  <body>
+    <header class="gallery-header">
+      <span class="section-badge">Client Gallery</span>
+      <h1 id="gallery-title">Gallery</h1>
+      <p id="gallery-client" class="message"></p>
+      <p id="gallery-description" class="message"></p>
+      <p id="status" class="message">Loading images...</p>
+    </header>
+
+    <div class="gallery-actions">
+      <button id="download-all-btn" type="button" style="display: none">
+        Download All
+      </button>
+    </div>
+
+    <div id="password-protect-box" class="password-box" style="display: none">
+      <p id="password-message">This gallery is password protected.</p>
+      <input
+        type="password"
+        id="gallery-password"
+        placeholder="Enter gallery password"
+      />
+      <button id="unlock-gallery-btn" type="button">Unlock Gallery</button>
+    </div>
+
+    <div id="gallery" class="grid"></div>
+
+    <div id="modal" class="image-modal hidden">
+      <div id="modal-overlay" class="image-modal-backdrop"></div>
+
+      <div class="image-modal-shell">
+        <button
+          id="modal-close-btn"
+          class="image-modal-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+        <button
+          id="prev-btn"
+          class="modal-nav modal-nav-left"
+          type="button"
+          aria-label="Previous image"
+        >
+          ‹
+        </button>
+
+        <div class="image-modal-content">
+          <img id="modal-image" alt="Gallery preview" />
+          <p id="modal-caption" class="image-modal-caption"></p>
+        </div>
+
+        <button
+          id="next-btn"
+          class="modal-nav modal-nav-right"
+          type="button"
+          aria-label="Next image"
+        >
+          ›
+        </button>
+      </div>
+    </div>
+
+    <script src="/gallery.js"></script>
+  </body>
+</html>

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Gallery</title>
+    <link rel="stylesheet" href="/manage-gallery.css" />
+  </head>
+  <body>
+    <div class="topbar">
+      <a href="/dashboard">← Back to Dashboard</a>
+    </div>
+
+    <header class="gallery-header">
+      <div class="gallery-header-text">
+        <span class="section-badge">Gallery Settings</span>
+        <h1 id="gallery-title">Manage Gallery</h1>
+        <p id="gallery-client" class="message"></p>
+        <p id="gallery-description" class="message"></p>
+        <p id="status" class="message">Loading images...</p>
+      </div>
+
+      <div class="header-actions">
+        <button id="copy-link-btn" type="button">Copy Client Link</button>
+        <button id="edit-gallery-btn" type="button">Edit Gallery</button>
+        <button id="delete-gallery-btn" class="danger-btn" type="button">
+          Delete Gallery
+        </button>
+      </div>
+    </header>
+
+    <div class="upload" id="drop-area">
+      <p>Drag and drop images here or click below to upload</p>
+      <input type="file" id="file-input" multiple hidden />
+      <button id="upload-btn" type="button">Select Files</button>
+    </div>
+
+    <div id="upload-progress-wrap" class="upload-progress hidden">
+      <div class="progress-bar">
+        <div id="upload-progress-fill" class="progress-fill"></div>
+      </div>
+      <p id="upload-progress-text">Uploading 0%</p>
+    </div>
+
+    <div id="gallery" class="grid"></div>
+
+    <div id="modal" class="image-modal hidden">
+      <div id="modal-overlay" class="image-modal-backdrop"></div>
+
+      <div class="image-modal-shell">
+        <button
+          id="modal-close-btn"
+          class="image-modal-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+        <button
+          id="prev-btn"
+          class="modal-nav modal-nav-left"
+          type="button"
+          aria-label="Previous image"
+        >
+          ‹
+        </button>
+
+        <div class="image-modal-content">
+          <img id="modal-image" alt="Gallery preview" />
+          <p id="modal-caption" class="image-modal-caption"></p>
+        </div>
+
+        <button
+          id="next-btn"
+          class="modal-nav modal-nav-right"
+          type="button"
+          aria-label="Next image"
+        >
+          ›
+        </button>
+      </div>
+    </div>
+
+    <dialog id="edit-gallery-dialog">
+      <form id="edit-gallery-form" method="dialog" class="edit-form">
+        <h2>Edit Gallery</h2>
+
+        <label for="edit-title">Gallery Title</label>
+        <input id="edit-title" name="title" type="text" required />
+
+        <label for="edit-client-name">Client Name</label>
+        <input id="edit-client-name" name="clientName" type="text" />
+
+        <label for="edit-description">Description</label>
+        <textarea id="edit-description" name="description" rows="4"></textarea>
+
+        <label for="edit-password">Gallery Password</label>
+        <input
+          id="edit-password"
+          type="password"
+          placeholder="Leave blank for no password"
+        />
+
+        <label for="edit-expiry">Expiry Date</label>
+        <input id="edit-expiry" type="date" />
+
+        <div class="dialog-actions">
+          <button type="button" id="cancel-edit-btn">Cancel</button>
+          <button type="submit" id="save-gallery-btn">Save Changes</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="app-modal" class="app-modal hidden">
+      <div class="app-modal-backdrop"></div>
+
+      <div
+        class="app-modal-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="app-modal-title"
+      >
+        <div class="app-modal-header">
+          <h3 id="app-modal-title">Confirm Action</h3>
+          <button
+            id="app-modal-close"
+            class="app-modal-close"
+            type="button"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+
+        <p id="app-modal-message" class="app-modal-message">
+          Are you sure you want to continue?
+        </p>
+
+        <div class="app-modal-actions">
+          <button
+            id="app-modal-cancel"
+            class="app-btn app-btn-secondary"
+            type="button"
+          >
+            Cancel
+          </button>
+          <button
+            id="app-modal-confirm"
+            class="app-btn app-btn-danger"
+            type="button"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/manage-gallery.js"></script>
+  </body>
+</html>
