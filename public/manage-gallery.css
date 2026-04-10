@@ -44,32 +44,23 @@ body {
 }
 
 .topbar a {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--text);
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  color: var(--text-soft, #6e655e);
+  font-weight: 600;
   text-decoration: none;
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid var(--border);
-  transition:
-    transform 0.18s ease,
-    background 0.18s ease;
+  transition: color 0.2s ease;
 }
 
 .topbar a:hover {
-  transform: translateY(-1px);
-  background: #fff;
+  color: var(--primary, #b7794b);
 }
 
 .gallery-header {
   max-width: 1200px;
   margin: 0 auto 22px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 30px;
-  box-shadow: var(--shadow);
+
   padding: 28px;
   backdrop-filter: blur(14px);
 }
