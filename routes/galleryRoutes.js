@@ -7,6 +7,7 @@ const {
   uploadImages,
   getGalleryImages,
   updateGalleryById,
+  getStorageUsage,
 } = require("../controllers/galleryController");
 const upload = require("../middleware/uploadMiddleware");
 const requireAuth = require("../middleware/requireAuth");
@@ -17,6 +18,7 @@ router.use(requireAuth);
 
 router.post("/", createGallery);
 router.get("/", getAllGalleries);
+router.get("/storage", getStorageUsage);
 router.get("/:id/images", getGalleryImages);
 router.get("/:id", getGalleryById);
 router.patch("/:id", updateGalleryById);

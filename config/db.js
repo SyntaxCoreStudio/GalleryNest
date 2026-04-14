@@ -17,6 +17,9 @@ db.prepare(
     id TEXT PRIMARY KEY,
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
+    plan TEXT NOT NULL DEFAULT 'free',
+    storage_used INTEGER NOT NULL DEFAULT 0,
+    storage_limit INTEGER NOT NULL DEFAULT 2147483648,
     created_at TEXT NOT NULL
   )
 `,
@@ -105,6 +108,39 @@ if (!hasExpiresAt) {
     `
     ALTER TABLE galleries
     ADD COLUMN expires_at TEXT
+  `,
+  ).run();
+}
+
+const userColumns = db.prepare("PRAGMA table_info(users)").all();
+
+const hasPlan = userColumns.some((col) => col.name === "plan");
+const hasStorageUsed = userColumns.some((col) => col.name === "storage_used");
+const hasStorageLimit = userColumns.some((col) => col.name === "storage_limit");
+
+if (!hasPlan) {
+  db.prepare(
+    `
+    ALTER TABLE users
+    ADD COLUMN plan TEXT NOT NULL DEFAULT 'free'
+  `,
+  ).run();
+}
+
+if (!hasStorageUsed) {
+  db.prepare(
+    `
+    ALTER TABLE users
+    ADD COLUMN storage_used INTEGER NOT NULL DEFAULT 0
+  `,
+  ).run();
+}
+
+if (!hasStorageLimit) {
+  db.prepare(
+    `
+    ALTER TABLE users
+    ADD COLUMN storage_limit INTEGER NOT NULL DEFAULT 2147483648
   `,
   ).run();
 }

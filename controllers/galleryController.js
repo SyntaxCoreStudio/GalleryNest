@@ -4,6 +4,7 @@ const path = require("path");
 const db = require("../config/db");
 const bcrypt = require("bcrypt");
 const sharp = require("sharp");
+const PLAN_LIMITS = require("../utils/planLimits");
 
 function createGallery(req, res) {
   const { title, clientName, description } = req.body;
@@ -125,9 +126,9 @@ function deleteGalleryById(req, res) {
   const existingGallery = db
     .prepare(
       `
-    SELECT * FROM galleries
-    WHERE id = ? AND user_id = ?
-  `,
+      SELECT * FROM galleries
+      WHERE id = ? AND user_id = ?
+    `,
     )
     .get(id, userId);
 
@@ -137,6 +138,16 @@ function deleteGalleryById(req, res) {
       message: "Gallery not found",
     });
   }
+
+  const sizeRow = db
+    .prepare(
+      `
+      SELECT COALESCE(SUM(size), 0) AS totalSize
+      FROM images
+      WHERE gallery_id = ?
+    `,
+    )
+    .get(id);
 
   const galleryFolderPath = path.join(
     __dirname,
@@ -156,6 +167,14 @@ function deleteGalleryById(req, res) {
     WHERE id = ? AND user_id = ?
   `,
   ).run(id, userId);
+
+  db.prepare(
+    `
+    UPDATE users
+    SET storage_used = MAX(storage_used - ?, 0)
+    WHERE id = ?
+  `,
+  ).run(sizeRow.totalSize || 0, userId);
 
   return res.status(200).json({
     ok: true,
@@ -188,6 +207,44 @@ async function uploadImages(req, res) {
     return res.status(400).json({
       ok: false,
       message: "No files uploaded",
+    });
+  }
+
+  const user = db
+    .prepare(
+      `
+    SELECT id, plan, storage_used, storage_limit
+    FROM users
+    WHERE id = ?
+  `,
+    )
+    .get(userId);
+
+  if (!user) {
+    return res.status(404).json({
+      ok: false,
+      message: "User not found",
+    });
+  }
+
+  const incomingSize = req.files.reduce((total, file) => total + file.size, 0);
+  const storageUsed = user.storage_used || 0;
+  const storageLimit =
+    user.storage_limit || PLAN_LIMITS[user.plan] || PLAN_LIMITS.free;
+
+  if (storageUsed + incomingSize > storageLimit) {
+    for (const file of req.files) {
+      if (file.path && fs.existsSync(file.path)) {
+        fs.unlinkSync(file.path);
+      }
+    }
+
+    return res.status(400).json({
+      ok: false,
+      message: "Upload would exceed your storage limit.",
+      storageUsed,
+      storageLimit,
+      incomingSize,
     });
   }
 
@@ -240,6 +297,14 @@ async function uploadImages(req, res) {
       size: file.size,
     });
   }
+
+  db.prepare(
+    `
+  UPDATE users
+  SET storage_used = storage_used + ?
+  WHERE id = ?
+`,
+  ).run(incomingSize, userId);
 
   return res.status(200).json({
     ok: true,
@@ -375,6 +440,14 @@ function deleteImageById(req, res) {
   `,
   ).run(imageId);
 
+  db.prepare(
+    `
+  UPDATE users
+  SET storage_used = MAX(storage_used - ?, 0)
+  WHERE id = ?
+`,
+  ).run(image.size || 0, userId);
+
   return res.status(200).json({
     ok: true,
     message: "Image deleted successfully",
@@ -462,6 +535,34 @@ async function updateGalleryById(req, res) {
   });
 }
 
+function getStorageUsage(req, res) {
+  const userId = req.session.user.id;
+
+  const user = db
+    .prepare(
+      `
+      SELECT plan, storage_used, storage_limit
+      FROM users
+      WHERE id = ?
+    `,
+    )
+    .get(userId);
+
+  if (!user) {
+    return res.status(404).json({
+      ok: false,
+      message: "User not found",
+    });
+  }
+
+  return res.status(200).json({
+    ok: true,
+    plan: user.plan,
+    storageUsed: user.storage_used,
+    storageLimit: user.storage_limit,
+  });
+}
+
 module.exports = {
   createGallery,
   getAllGalleries,
@@ -471,4 +572,5 @@ module.exports = {
   getGalleryImages,
   deleteImageById,
   updateGalleryById,
+  getStorageUsage,
 };

@@ -5,6 +5,27 @@ const createGalleryBtn = document.getElementById("create-gallery-btn");
 const logoutBtn = document.getElementById("logout-btn");
 const sessionStatusEl = document.getElementById("session-status");
 
+const storagePlanEl = document.getElementById("storage-plan");
+const storageLabelEl = document.getElementById("storage-label");
+const storagePercentEl = document.getElementById("storage-percent");
+const storageFillEl = document.getElementById("storage-fill");
+
+function formatBytes(bytes) {
+  if (!bytes || bytes <= 0) {
+    return "0 Bytes";
+  }
+
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+
+  return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
+}
+
+function formatPlanName(plan) {
+  if (!plan) return "Free Plan";
+  return `${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan`;
+}
+
 async function checkSession() {
   try {
     const response = await fetch("/api/auth/me");
@@ -21,6 +42,47 @@ async function checkSession() {
     console.error("Session check failed:", error);
     window.location.href = "/login.html";
     return false;
+  }
+}
+
+async function loadStorageUsage() {
+  try {
+    storagePlanEl.textContent = "Loading...";
+    storageLabelEl.textContent = "Loading storage...";
+    storagePercentEl.textContent = "0%";
+    storageFillEl.style.width = "0%";
+
+    const res = await fetch("/api/galleries/storage");
+    const data = await res.json();
+
+    if (res.status === 401) {
+      window.location.href = "/login.html";
+      return;
+    }
+
+    if (!res.ok || !data.ok) {
+      storagePlanEl.textContent = "Storage unavailable";
+      storageLabelEl.textContent =
+        data.message || "Could not load storage usage.";
+      storagePercentEl.textContent = "0%";
+      storageFillEl.style.width = "0%";
+      return;
+    }
+
+    const used = data.storageUsed || 0;
+    const limit = data.storageLimit || 1;
+    const percent = Math.min(Math.round((used / limit) * 100), 100);
+
+    storagePlanEl.textContent = formatPlanName(data.plan);
+    storageLabelEl.textContent = `${formatBytes(used)} of ${formatBytes(limit)} used`;
+    storagePercentEl.textContent = `${percent}%`;
+    storageFillEl.style.width = `${percent}%`;
+  } catch (error) {
+    console.error("Failed to load storage usage:", error);
+    storagePlanEl.textContent = "Storage unavailable";
+    storageLabelEl.textContent = "Something went wrong while loading storage.";
+    storagePercentEl.textContent = "0%";
+    storageFillEl.style.width = "0%";
   }
 }
 
@@ -127,6 +189,7 @@ async function createGallery() {
 
     titleInput.value = "";
     await loadGalleries();
+    await loadStorageUsage();
   } catch (error) {
     console.error("Failed to create gallery:", error);
     alert("Something went wrong while creating the gallery.");
@@ -151,6 +214,7 @@ async function initDashboard() {
     return;
   }
 
+  await loadStorageUsage();
   await loadGalleries();
 }
 
