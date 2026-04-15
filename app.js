@@ -10,6 +10,13 @@ const fs = require("fs");
 require("./config/db");
 
 const env = require("./config/env");
+
+if (!env.sessionSecret || env.sessionSecret.length < 32) {
+  throw new Error(
+    "SESSION_SECRET is missing or too short. Use a long random secret.",
+  );
+}
+
 const healthRoutes = require("./routes/healthRoutes");
 const authRoutes = require("./routes/authRoutes");
 const galleryRoutes = require("./routes/galleryRoutes");
@@ -19,6 +26,8 @@ const notFound = require("./middleware/notFound");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
+
+app.set("trust proxy", 1);
 
 const dataDir = path.join(__dirname, "data");
 fs.mkdirSync(dataDir, { recursive: true });
@@ -32,7 +41,14 @@ const globalLimiter = rateLimit({
   },
 });
 
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "same-site" },
+    frameguard: { action: "deny" },
+    referrerPolicy: { policy: "no-referrer" },
+  }),
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -43,12 +59,12 @@ app.use(
       db: "sessions.db",
       dir: dataDir,
     }),
-    secret: env.sessionSecret || "change-this-session-secret",
+    secret: env.sessionSecret,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false,
+      secure: env.nodeEnv === "production",
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
@@ -64,7 +80,6 @@ app.get("/", (req, res) => {
 });
 
 app.use(express.static(path.join(__dirname, "public")));
-app.use("/storage", express.static(path.join(__dirname, "storage")));
 
 app.get("/dashboard", (req, res) => {
   if (!req.session.user) {

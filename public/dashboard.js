@@ -130,10 +130,14 @@ async function loadGalleries() {
       const div = document.createElement("div");
       div.className = "gallery";
 
-      div.innerHTML = `
-        <h3>${gallery.title}</h3>
-        <p>${gallery.clientName || "No client name yet"}</p>
-      `;
+      const titleEl = document.createElement("h3");
+      titleEl.textContent = gallery.title;
+
+      const clientEl = document.createElement("p");
+      clientEl.textContent = gallery.clientName || "No client name yet";
+
+      div.appendChild(titleEl);
+      div.appendChild(clientEl);
 
       div.addEventListener("click", () => {
         window.location.href = `/manage-gallery?id=${gallery.id}`;

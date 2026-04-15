@@ -1,11 +1,24 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
+const rateLimit = require("express-rate-limit");
 const { v4: uuidv4 } = require("uuid");
 const db = require("../config/db");
+const env = require("../config/env");
 
 const router = express.Router();
 
-router.post("/signup", async (req, res, next) => {
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    ok: false,
+    message: "Too many authentication attempts. Please try again later.",
+  },
+});
+
+router.post("/signup", authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -17,6 +30,14 @@ router.post("/signup", async (req, res, next) => {
     }
 
     const cleanEmail = email.trim().toLowerCase();
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      return res.status(400).json({
+        ok: false,
+        message: "Please enter a valid email address",
+      });
+    }
 
     if (password.length < 8) {
       return res.status(400).json({
@@ -36,33 +57,47 @@ router.post("/signup", async (req, res, next) => {
       });
     }
 
-    const userId = uuidv4();
     const passwordHash = await bcrypt.hash(password, 12);
+    const userId = uuidv4();
     const createdAt = new Date().toISOString();
 
     db.prepare(
       `
       INSERT INTO users (id, email, password_hash, created_at)
       VALUES (?, ?, ?, ?)
-    `,
+      `,
     ).run(userId, cleanEmail, passwordHash, createdAt);
 
-    req.session.user = {
-      id: userId,
-      email: cleanEmail,
-    };
+    req.session.regenerate((sessionError) => {
+      if (sessionError) {
+        console.error("Session regenerate error during signup:", sessionError);
+        return res.status(500).json({
+          ok: false,
+          message: "Something went wrong during signup",
+        });
+      }
 
-    return res.status(201).json({
-      ok: true,
-      message: "Account created successfully",
-      user: req.session.user,
+      req.session.user = {
+        id: userId,
+        email: cleanEmail,
+      };
+
+      return res.status(201).json({
+        ok: true,
+        message: "Account created successfully",
+        user: req.session.user,
+      });
     });
   } catch (error) {
-    next(error);
+    console.error("Signup error:", error);
+    return res.status(500).json({
+      ok: false,
+      message: "Something went wrong during signup",
+    });
   }
 });
 
-router.post("/login", async (req, res, next) => {
+router.post("/login", authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -95,28 +130,50 @@ router.post("/login", async (req, res, next) => {
       });
     }
 
-    req.session.user = {
-      id: user.id,
-      email: user.email,
-    };
+    req.session.regenerate((sessionError) => {
+      if (sessionError) {
+        console.error("Session regenerate error during login:", sessionError);
+        return res.status(500).json({
+          ok: false,
+          message: "Something went wrong during login",
+        });
+      }
 
-    return res.json({
-      ok: true,
-      message: "Login successful",
-      user: req.session.user,
+      req.session.user = {
+        id: user.id,
+        email: user.email,
+      };
+
+      return res.json({
+        ok: true,
+        message: "Login successful",
+        user: req.session.user,
+      });
     });
   } catch (error) {
-    next(error);
+    console.error("Login error:", error);
+    return res.status(500).json({
+      ok: false,
+      message: "Something went wrong during login",
+    });
   }
 });
 
-router.post("/logout", (req, res, next) => {
+router.post("/logout", (req, res) => {
   req.session.destroy((error) => {
     if (error) {
-      return next(error);
+      console.error("Logout error:", error);
+      return res.status(500).json({
+        ok: false,
+        message: "Could not log out",
+      });
     }
 
-    res.clearCookie("connect.sid");
+    res.clearCookie("connect.sid", {
+      httpOnly: true,
+      secure: env.nodeEnv === "production",
+      sameSite: "lax",
+    });
 
     return res.json({
       ok: true,

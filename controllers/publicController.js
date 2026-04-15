@@ -44,7 +44,7 @@ function formatGalleryResponse(gallery) {
     originalName: img.original_name,
     size: img.size,
     uploadedAt: img.uploaded_at,
-    url: `/storage/galleries/${gallery.id}/preview/${img.filename}`,
+    url: `/api/public/gallery/${gallery.share_token}/images/${img.id}/preview`,
   }));
 
   return {
@@ -230,8 +230,80 @@ function downloadPublicGallery(req, res) {
   archive.finalize();
 }
 
+function getPublicPreviewImage(req, res) {
+  const { token, imageId } = req.params;
+
+  const gallery = db
+    .prepare(
+      `
+      SELECT *
+      FROM galleries
+      WHERE share_token = ?
+    `,
+    )
+    .get(token);
+
+  if (!gallery) {
+    return res.status(404).json({
+      ok: false,
+      message: "Gallery not found",
+    });
+  }
+
+  if (isExpired(gallery)) {
+    return res.status(410).json({
+      ok: false,
+      message: "This gallery has expired",
+    });
+  }
+
+  if (gallery.password_hash && !isGalleryUnlocked(req, token)) {
+    return res.status(403).json({
+      ok: false,
+      message: "This gallery must be unlocked first",
+    });
+  }
+
+  const image = db
+    .prepare(
+      `
+      SELECT *
+      FROM images
+      WHERE id = ? AND gallery_id = ?
+    `,
+    )
+    .get(imageId, gallery.id);
+
+  if (!image) {
+    return res.status(404).json({
+      ok: false,
+      message: "Image not found",
+    });
+  }
+
+  const previewPath = path.join(
+    __dirname,
+    "..",
+    "storage",
+    "galleries",
+    gallery.id,
+    "preview",
+    image.filename,
+  );
+
+  if (!fs.existsSync(previewPath)) {
+    return res.status(404).json({
+      ok: false,
+      message: "Preview not found",
+    });
+  }
+
+  return res.sendFile(previewPath);
+}
+
 module.exports = {
   getPublicGalleryByToken,
   unlockPublicGalleryByToken,
   downloadPublicGallery,
+  getPublicPreviewImage,
 };

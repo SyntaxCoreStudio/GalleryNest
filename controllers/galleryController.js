@@ -190,13 +190,19 @@ async function uploadImages(req, res) {
   const gallery = db
     .prepare(
       `
-    SELECT * FROM galleries
-    WHERE id = ? AND user_id = ?
-  `,
+      SELECT * FROM galleries
+      WHERE id = ? AND user_id = ?
+      `,
     )
     .get(id, userId);
 
   if (!gallery) {
+    for (const file of req.files || []) {
+      if (file.path && fs.existsSync(file.path)) {
+        fs.unlinkSync(file.path);
+      }
+    }
+
     return res.status(404).json({
       ok: false,
       message: "Gallery not found",
@@ -213,14 +219,20 @@ async function uploadImages(req, res) {
   const user = db
     .prepare(
       `
-    SELECT id, plan, storage_used, storage_limit
-    FROM users
-    WHERE id = ?
-  `,
+      SELECT id, plan, storage_used, storage_limit
+      FROM users
+      WHERE id = ?
+      `,
     )
     .get(userId);
 
   if (!user) {
+    for (const file of req.files) {
+      if (file.path && fs.existsSync(file.path)) {
+        fs.unlinkSync(file.path);
+      }
+    }
+
     return res.status(404).json({
       ok: false,
       message: "User not found",
@@ -260,57 +272,92 @@ async function uploadImages(req, res) {
   fs.mkdirSync(previewDir, { recursive: true });
 
   const uploadedFiles = [];
+  const createdOriginalPaths = [];
+  const createdPreviewPaths = [];
+  const insertedImageIds = [];
 
-  for (const file of req.files) {
-    const imageId = uuidv4();
-    const uploadedAt = new Date().toISOString();
+  try {
+    for (const file of req.files) {
+      const imageId = uuidv4();
+      const uploadedAt = new Date().toISOString();
 
-    const originalPath = file.path;
-    const previewPath = path.join(previewDir, file.filename);
+      const originalPath = file.path;
+      const previewPath = path.join(previewDir, file.filename);
 
-    await sharp(originalPath)
-      .resize({
-        width: 1600,
-        height: 1600,
-        fit: "inside",
-        withoutEnlargement: true,
-      })
-      .toFile(previewPath);
+      createdOriginalPaths.push(originalPath);
+      createdPreviewPaths.push(previewPath);
+
+      await sharp(originalPath)
+        .rotate()
+        .resize({
+          width: 1600,
+          height: 1600,
+          fit: "inside",
+          withoutEnlargement: true,
+        })
+        .toFile(previewPath);
+
+      db.prepare(
+        `
+        INSERT INTO images (
+          id,
+          gallery_id,
+          filename,
+          original_name,
+          size,
+          uploaded_at
+        ) VALUES (?, ?, ?, ?, ?, ?)
+        `,
+      ).run(
+        imageId,
+        id,
+        file.filename,
+        file.originalname,
+        file.size,
+        uploadedAt,
+      );
+
+      insertedImageIds.push(imageId);
+
+      uploadedFiles.push({
+        id: imageId,
+        filename: file.filename,
+        originalName: file.originalname,
+        size: file.size,
+      });
+    }
 
     db.prepare(
       `
-      INSERT INTO images (
-        id,
-        gallery_id,
-        filename,
-        original_name,
-        size,
-        uploaded_at
-      ) VALUES (?, ?, ?, ?, ?, ?)
-    `,
-    ).run(imageId, id, file.filename, file.originalname, file.size, uploadedAt);
+      UPDATE users
+      SET storage_used = storage_used + ?
+      WHERE id = ?
+      `,
+    ).run(incomingSize, userId);
 
-    uploadedFiles.push({
-      id: imageId,
-      filename: file.filename,
-      originalName: file.originalname,
-      size: file.size,
+    return res.status(200).json({
+      ok: true,
+      message: "Images uploaded successfully",
+      files: uploadedFiles,
+    });
+  } catch (error) {
+    console.error("Upload processing failed:", error);
+
+    for (const imageId of insertedImageIds) {
+      db.prepare("DELETE FROM images WHERE id = ?").run(imageId);
+    }
+
+    for (const filePath of [...createdPreviewPaths, ...createdOriginalPaths]) {
+      if (filePath && fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    return res.status(500).json({
+      ok: false,
+      message: "Failed to process uploaded images",
     });
   }
-
-  db.prepare(
-    `
-  UPDATE users
-  SET storage_used = storage_used + ?
-  WHERE id = ?
-`,
-  ).run(incomingSize, userId);
-
-  return res.status(200).json({
-    ok: true,
-    message: "Images uploaded successfully",
-    files: uploadedFiles,
-  });
 }
 
 function getGalleryImages(req, res) {
@@ -349,7 +396,7 @@ function getGalleryImages(req, res) {
     originalName: img.original_name,
     size: img.size,
     uploadedAt: img.uploaded_at,
-    url: `/storage/galleries/${id}/preview/${img.filename}`,
+    url: `/api/images/${img.id}/preview`,
   }));
 
   return res.status(200).json({
@@ -563,6 +610,90 @@ function getStorageUsage(req, res) {
   });
 }
 
+function getOwnedPreviewImage(req, res) {
+  const { imageId } = req.params;
+  const userId = req.session.user.id;
+
+  const image = db
+    .prepare(
+      `
+      SELECT i.*, g.user_id
+      FROM images i
+      JOIN galleries g ON g.id = i.gallery_id
+      WHERE i.id = ?
+    `,
+    )
+    .get(imageId);
+
+  if (!image || image.user_id !== userId) {
+    return res.status(404).json({
+      ok: false,
+      message: "Image not found",
+    });
+  }
+
+  const previewPath = path.join(
+    __dirname,
+    "..",
+    "storage",
+    "galleries",
+    image.gallery_id,
+    "preview",
+    image.filename,
+  );
+
+  if (!fs.existsSync(previewPath)) {
+    return res.status(404).json({
+      ok: false,
+      message: "Preview not found",
+    });
+  }
+
+  return res.sendFile(previewPath);
+}
+
+function getOwnedOriginalImage(req, res) {
+  const { imageId } = req.params;
+  const userId = req.session.user.id;
+
+  const image = db
+    .prepare(
+      `
+      SELECT i.*, g.user_id
+      FROM images i
+      JOIN galleries g ON g.id = i.gallery_id
+      WHERE i.id = ?
+    `,
+    )
+    .get(imageId);
+
+  if (!image || image.user_id !== userId) {
+    return res.status(404).json({
+      ok: false,
+      message: "Image not found",
+    });
+  }
+
+  const originalPath = path.join(
+    __dirname,
+    "..",
+    "storage",
+    "galleries",
+    image.gallery_id,
+    "original",
+    image.filename,
+  );
+
+  if (!fs.existsSync(originalPath)) {
+    return res.status(404).json({
+      ok: false,
+      message: "Original file not found",
+    });
+  }
+
+  return res.sendFile(originalPath);
+}
+
 module.exports = {
   createGallery,
   getAllGalleries,
@@ -573,4 +704,6 @@ module.exports = {
   deleteImageById,
   updateGalleryById,
   getStorageUsage,
+  getOwnedPreviewImage,
+  getOwnedOriginalImage,
 };
