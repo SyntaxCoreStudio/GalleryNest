@@ -1,3 +1,54 @@
+let csrfTokenCache = null;
+
+async function getCsrfToken() {
+  if (csrfTokenCache) return csrfTokenCache;
+
+  const res = await fetch("/api/csrf-token", {
+    credentials: "same-origin",
+  });
+
+  const data = await res.json();
+
+  if (!res.ok || !data.csrfToken) {
+    throw new Error("Failed to get CSRF token");
+  }
+
+  csrfTokenCache = data.csrfToken;
+  return csrfTokenCache;
+}
+
+async function apiFetch(url, options = {}) {
+  const method = (options.method || "GET").toUpperCase();
+  const headers = {
+    ...(options.headers || {}),
+  };
+
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+    const csrfToken = await getCsrfToken();
+    headers["x-csrf-token"] = csrfToken;
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    method,
+    headers,
+    credentials: "same-origin",
+  });
+
+  if (response.status === 403) {
+    try {
+      const data = await response.clone().json();
+      if (data.message === "Invalid CSRF token") {
+        csrfTokenCache = null;
+      }
+    } catch (error) {
+      console.error("Failed to parse CSRF error response:", error);
+    }
+  }
+
+  return response;
+}
+
 const loginForm = document.getElementById("login-form");
 const messageEl = document.getElementById("message");
 
@@ -10,7 +61,7 @@ loginForm.addEventListener("submit", async (event) => {
   messageEl.textContent = "Logging in...";
 
   try {
-    const response = await fetch("/api/auth/login", {
+    const response = await apiFetch("/api/auth/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

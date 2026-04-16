@@ -1,12 +1,30 @@
 require("dotenv").config();
 
+function toInt(value, fallback) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
 const env = {
-  port: process.env.PORT || 3006,
+  port: toInt(process.env.PORT, 3006),
   nodeEnv: process.env.NODE_ENV || "development",
-  sessionSecret: process.env.SESSION_SECRET || "fallback_secret",
+  isProd: (process.env.NODE_ENV || "development") === "production",
+
+  sessionSecret: process.env.SESSION_SECRET,
+  csrfSecret: process.env.CSRF_SECRET,
+
   baseUrl: process.env.BASE_URL || "http://localhost:3006",
-  maxFileSizeMb: Number(process.env.MAX_FILE_SIZE_MB || 25),
-  uploadLimitPerRequest: Number(process.env.UPLOAD_LIMIT_PER_REQUEST || 50),
+
+  maxFileSizeMb: toInt(process.env.MAX_FILE_SIZE_MB, 25),
+  uploadLimitPerRequest: toInt(process.env.UPLOAD_LIMIT_PER_REQUEST, 50),
 };
+
+if (!env.sessionSecret || env.sessionSecret.length < 32) {
+  throw new Error("SESSION_SECRET must be set and at least 32 characters long");
+}
+
+if (!env.csrfSecret || env.csrfSecret.length < 32) {
+  throw new Error("CSRF_SECRET must be set and at least 32 characters long");
+}
 
 module.exports = env;

@@ -24,6 +24,11 @@ const imageRoutes = require("./routes/imageRoutes");
 const publicRoutes = require("./routes/publicRoutes");
 const notFound = require("./middleware/notFound");
 const errorHandler = require("./middleware/errorHandler");
+const {
+  generateCsrfToken,
+  doubleCsrfProtection,
+  csrfErrorHandler,
+} = require("./middleware/csrfProtection");
 
 const app = express();
 
@@ -59,17 +64,28 @@ app.use(
       db: "sessions.db",
       dir: dataDir,
     }),
+    name: "gallerynest.sid",
     secret: env.sessionSecret,
     resave: false,
     saveUninitialized: false,
+    proxy: env.isProd,
     cookie: {
       httpOnly: true,
-      secure: env.nodeEnv === "production",
+      secure: env.isProd,
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   }),
 );
+
+app.get("/api/csrf-token", (req, res) => {
+  const csrfToken = generateCsrfToken(req, res);
+
+  return res.json({
+    ok: true,
+    csrfToken,
+  });
+});
 
 app.get("/", (req, res) => {
   if (req.session.user) {
@@ -86,7 +102,7 @@ app.get("/dashboard", (req, res) => {
     return res.redirect("/login.html");
   }
 
-  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
+  return res.sendFile(path.join(__dirname, "public", "dashboard.html"));
 });
 
 app.get("/dashboard.html", (req, res) => {
@@ -98,7 +114,7 @@ app.get("/manage-gallery", (req, res) => {
     return res.redirect("/login.html");
   }
 
-  res.sendFile(path.join(__dirname, "public", "manage-gallery.html"));
+  return res.sendFile(path.join(__dirname, "public", "manage-gallery.html"));
 });
 
 app.get("/manage-gallery.html", (req, res) => {
@@ -108,11 +124,12 @@ app.get("/manage-gallery.html", (req, res) => {
 app.use(globalLimiter);
 
 app.use("/health", healthRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/galleries", galleryRoutes);
-app.use("/api/images", imageRoutes);
+app.use("/api/auth", doubleCsrfProtection, authRoutes);
+app.use("/api/galleries", doubleCsrfProtection, galleryRoutes);
+app.use("/api/images", doubleCsrfProtection, imageRoutes);
 app.use("/api/public", publicRoutes);
 
+app.use(csrfErrorHandler);
 app.use(notFound);
 app.use(errorHandler);
 

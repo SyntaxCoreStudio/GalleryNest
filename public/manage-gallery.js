@@ -1,3 +1,53 @@
+let csrfTokenCache = null;
+
+async function getCsrfToken() {
+  if (csrfTokenCache) return csrfTokenCache;
+
+  const res = await fetch("/api/csrf-token", {
+    credentials: "same-origin",
+  });
+
+  const data = await res.json();
+
+  if (!res.ok || !data.csrfToken) {
+    throw new Error("Failed to get CSRF token");
+  }
+
+  csrfTokenCache = data.csrfToken;
+  return csrfTokenCache;
+}
+
+async function apiFetch(url, options = {}) {
+  const method = (options.method || "GET").toUpperCase();
+
+  const headers = {
+    ...(options.headers || {}),
+  };
+
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+    const csrfToken = await getCsrfToken();
+    headers["x-csrf-token"] = csrfToken;
+  }
+
+  const res = await fetch(url, {
+    ...options,
+    method,
+    headers,
+    credentials: "same-origin",
+  });
+
+  if (res.status === 403) {
+    try {
+      const data = await res.clone().json();
+      if (data.message === "Invalid CSRF token") {
+        csrfTokenCache = null;
+      }
+    } catch (_) {}
+  }
+
+  return res;
+}
+
 const uploadBtn = document.getElementById("upload-btn");
 const fileInput = document.getElementById("file-input");
 
@@ -200,7 +250,7 @@ async function loadImages() {
           confirmClass: "app-btn-danger",
           onConfirm: async () => {
             try {
-              const res = await fetch(`/api/images/${img.id}`, {
+              const res = await apiFetch(`/api/images/${img.id}`, {
                 method: "DELETE",
               });
 
@@ -360,7 +410,7 @@ async function deleteGallery() {
     confirmClass: "app-btn-danger",
     onConfirm: async () => {
       try {
-        const res = await fetch(`/api/galleries/${galleryId}`, {
+        const res = await apiFetch(`/api/galleries/${galleryId}`, {
           method: "DELETE",
         });
 
@@ -437,7 +487,7 @@ async function saveGalleryChanges(event) {
     saveGalleryBtn.disabled = true;
     saveGalleryBtn.textContent = "Saving...";
 
-    const res = await fetch(`/api/galleries/${galleryId}`, {
+    const res = await apiFetch(`/api/galleries/${galleryId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -486,10 +536,14 @@ async function uploadFromFormData(formData) {
     showProgress();
     resetProgress();
 
+    const csrfToken = await getCsrfToken();
+
     await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
 
       xhr.open("POST", `/api/galleries/${galleryId}/upload`);
+
+      xhr.setRequestHeader("x-csrf-token", csrfToken);
 
       xhr.upload.addEventListener("progress", (event) => {
         if (!event.lengthComputable) return;

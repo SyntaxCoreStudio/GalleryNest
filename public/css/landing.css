@@ -246,11 +246,6 @@ a {
   transform: perspective(1200px) rotateY(-4deg);
 }
 
-.hero-card img:hover {
-  transform: translateY(-6px);
-  transform: perspective(1200px) rotateY(0deg) translateY(-6px);
-}
-
 .mockup-window {
   width: 100%;
   max-width: 540px;

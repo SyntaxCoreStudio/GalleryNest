@@ -1,3 +1,55 @@
+let csrfTokenCache = null;
+
+async function getCsrfToken() {
+  if (csrfTokenCache) return csrfTokenCache;
+
+  const res = await fetch("/api/csrf-token", {
+    credentials: "same-origin",
+  });
+
+  const data = await res.json();
+
+  if (!res.ok || !data.csrfToken) {
+    throw new Error("Failed to get CSRF token");
+  }
+
+  csrfTokenCache = data.csrfToken;
+  return csrfTokenCache;
+}
+
+async function apiFetch(url, options = {}) {
+  const method = (options.method || "GET").toUpperCase();
+  const isStateChanging = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
+
+  const headers = {
+    ...(options.headers || {}),
+  };
+
+  if (isStateChanging) {
+    const csrfToken = await getCsrfToken();
+    headers["x-csrf-token"] = csrfToken;
+  }
+
+  const res = await fetch(url, {
+    ...options,
+    method,
+    headers,
+    credentials: "same-origin",
+  });
+
+  // If CSRF fails, clear cache so it retries next time
+  if (res.status === 403) {
+    try {
+      const data = await res.clone().json();
+      if (data.message === "Invalid CSRF token") {
+        csrfTokenCache = null;
+      }
+    } catch (_) {}
+  }
+
+  return res;
+}
+
 const galleriesContainer = document.getElementById("galleries");
 const statusEl = document.getElementById("status");
 const titleInput = document.getElementById("title");
@@ -88,7 +140,7 @@ async function loadStorageUsage() {
 
 logoutBtn.addEventListener("click", async () => {
   try {
-    await fetch("/api/auth/logout", {
+    await apiFetch("/api/auth/logout", {
       method: "POST",
     });
   } catch (error) {
@@ -165,7 +217,7 @@ async function createGallery() {
     createGalleryBtn.disabled = true;
     createGalleryBtn.textContent = "Creating...";
 
-    const res = await fetch("/api/galleries", {
+    const res = await apiFetch("/api/galleries", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
