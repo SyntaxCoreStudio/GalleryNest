@@ -5,6 +5,13 @@ const crypto = require("crypto");
 
 const allowedExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif"]);
 
+const allowedMimeTypes = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
+
 const storage = multer.diskStorage({
   destination(req, file, cb) {
     const galleryId = req.params.id;
@@ -37,20 +44,21 @@ const storage = multer.diskStorage({
 function fileFilter(req, file, cb) {
   const ext = path.extname(file.originalname).toLowerCase();
   const isImageMime = file.mimetype.startsWith("image/");
-  const allowedMimeTypes = new Set([
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "image/gif",
-  ]);
 
-  if (
-    !isImageMime ||
-    !allowedExtensions.has(ext) ||
-    !allowedMimeTypes.has(file.mimetype)
-  ) {
+  if (!isImageMime) {
+    return cb(new Error("Only image files are allowed"), false);
+  }
+
+  if (!allowedExtensions.has(ext)) {
     return cb(
-      new Error("Only JPG, PNG, WEBP, and GIF image files are allowed"),
+      new Error("Unsupported file extension. Use JPG, PNG, WEBP, or GIF."),
+      false,
+    );
+  }
+
+  if (!allowedMimeTypes.has(file.mimetype)) {
+    return cb(
+      new Error("Unsupported image format. Use JPG, PNG, WEBP, or GIF."),
       false,
     );
   }
