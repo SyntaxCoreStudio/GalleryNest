@@ -13,6 +13,9 @@ const env = {
   sessionSecret: process.env.SESSION_SECRET,
   csrfSecret: process.env.CSRF_SECRET,
 
+  emailUser: process.env.EMAIL_USER,
+  emailPass: process.env.EMAIL_PASS,
+
   baseUrl: process.env.BASE_URL || "http://localhost:3006",
 
   maxFileSizeMb: toInt(process.env.MAX_FILE_SIZE_MB, 25),

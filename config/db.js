@@ -20,6 +20,8 @@ db.prepare(
     plan TEXT NOT NULL DEFAULT 'free',
     storage_used INTEGER NOT NULL DEFAULT 0,
     storage_limit INTEGER NOT NULL DEFAULT 2147483648,
+    reset_token_hash TEXT,
+    reset_token_expires_at TEXT,
     created_at TEXT NOT NULL
   )
 `,
@@ -117,6 +119,12 @@ const userColumns = db.prepare("PRAGMA table_info(users)").all();
 const hasPlan = userColumns.some((col) => col.name === "plan");
 const hasStorageUsed = userColumns.some((col) => col.name === "storage_used");
 const hasStorageLimit = userColumns.some((col) => col.name === "storage_limit");
+const hasResetTokenHash = userColumns.some(
+  (col) => col.name === "reset_token_hash",
+);
+const hasResetTokenExpiresAt = userColumns.some(
+  (col) => col.name === "reset_token_expires_at",
+);
 
 if (!hasPlan) {
   db.prepare(
@@ -141,6 +149,24 @@ if (!hasStorageLimit) {
     `
     ALTER TABLE users
     ADD COLUMN storage_limit INTEGER NOT NULL DEFAULT 2147483648
+  `,
+  ).run();
+}
+
+if (!hasResetTokenHash) {
+  db.prepare(
+    `
+    ALTER TABLE users
+    ADD COLUMN reset_token_hash TEXT
+  `,
+  ).run();
+}
+
+if (!hasResetTokenExpiresAt) {
+  db.prepare(
+    `
+    ALTER TABLE users
+    ADD COLUMN reset_token_expires_at TEXT
   `,
   ).run();
 }
