@@ -122,7 +122,7 @@ app.get("/manage-gallery.html", (req, res) => {
 });
 
 app.use("/health", healthRoutes);
-app.use("/api/auth", authLimiter, doubleCsrfProtection, authRoutes);
+app.use("/api/auth", doubleCsrfProtection, authRoutes);
 app.use("/api/galleries", doubleCsrfProtection, galleryRoutes);
 app.use("/api/images", doubleCsrfProtection, imageRoutes);
 app.use("/api/public", publicRoutes);

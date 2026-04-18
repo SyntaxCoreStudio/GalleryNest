@@ -7,18 +7,16 @@ const env = require("../config/env");
 
 const router = express.Router();
 
-const authLimiter = rateLimit({
+const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
   message: {
     ok: false,
-    message: "Too many authentication attempts. Please try again later.",
+    message: "Too many login attempts, please try again later.",
   },
 });
 
-router.post("/signup", authLimiter, async (req, res) => {
+router.post("/signup", async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -97,7 +95,7 @@ router.post("/signup", authLimiter, async (req, res) => {
   }
 });
 
-router.post("/login", authLimiter, async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -169,7 +167,7 @@ router.post("/logout", (req, res) => {
       });
     }
 
-    res.clearCookie("connect.sid", {
+    res.clearCookie("gallerynest.sid", {
       httpOnly: true,
       secure: env.nodeEnv === "production",
       sameSite: "lax",
