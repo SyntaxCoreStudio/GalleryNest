@@ -23,6 +23,6 @@ router.get("/:id/images", getGalleryImages);
 router.get("/:id", getGalleryById);
 router.patch("/:id", updateGalleryById);
 router.delete("/:id", deleteGalleryById);
-router.post("/:id/upload", upload.array("images", 50), uploadImages);
+router.post("/:id/upload", upload.array("images", 5), uploadImages);
 
 module.exports = router;

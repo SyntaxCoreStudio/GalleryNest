@@ -517,18 +517,23 @@ async function saveGalleryChanges(event) {
   }
 }
 
-function handleFiles(files) {
-  const formData = new FormData();
-
-  for (let i = 0; i < files.length; i++) {
-    formData.append("images", files[i]);
+function chunkFiles(files, batchSize) {
+  const chunks = [];
+  for (let i = 0; i < files.length; i += batchSize) {
+    chunks.push(files.slice(i, i + batchSize));
   }
-
-  uploadFromFormData(formData);
+  return chunks;
 }
 
-async function uploadFromFormData(formData) {
+async function handleFiles(files) {
   const galleryId = getGalleryId();
+
+  const fileArray = Array.from(files);
+  const batchSize = 5; // matches backend multer limit
+  const batches = chunkFiles(fileArray, batchSize);
+
+  let uploadedCount = 0;
+  const totalFiles = fileArray.length;
 
   try {
     uploadBtn.disabled = true;
@@ -536,70 +541,32 @@ async function uploadFromFormData(formData) {
     showProgress();
     resetProgress();
 
-    const csrfToken = await getCsrfToken();
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i];
+      const formData = new FormData();
 
-    await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
+      for (const file of batch) {
+        formData.append("images", file);
+      }
 
-      xhr.open("POST", `/api/galleries/${galleryId}/upload`);
+      await uploadSingleBatch(formData, (batchPercent) => {
+        // convert batch progress into global progress
+        const batchWeight = batch.length / totalFiles;
+        const overall =
+          (uploadedCount / totalFiles) * 100 + batchPercent * batchWeight;
 
-      xhr.setRequestHeader("x-csrf-token", csrfToken);
-
-      xhr.upload.addEventListener("progress", (event) => {
-        if (!event.lengthComputable) return;
-
-        const percent = Math.round((event.loaded / event.total) * 100);
-        updateProgress(percent);
+        updateProgress(Math.round(overall));
       });
 
-      xhr.addEventListener("load", () => {
-        if (xhr.status === 401) {
-          window.location.href = "/login.html";
-          return;
-        }
+      uploadedCount += batch.length;
+    }
 
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            const data = JSON.parse(xhr.responseText);
-
-            if (data.ok) {
-              updateProgress(100);
-              fileInput.value = "";
-              loadImages();
-              resolve();
-            } else {
-              reject(new Error(data.message || "Upload failed"));
-            }
-          } catch (error) {
-            reject(new Error("Invalid server response"));
-          }
-        } else {
-          try {
-            const data = JSON.parse(xhr.responseText);
-            reject(
-              new Error(
-                data.message || `Upload failed with status ${xhr.status}`,
-              ),
-            );
-          } catch (error) {
-            reject(new Error(`Upload failed with status ${xhr.status}`));
-          }
-        }
-      });
-
-      xhr.addEventListener("error", () => {
-        reject(new Error("Network error during upload"));
-      });
-
-      xhr.addEventListener("abort", () => {
-        reject(new Error("Upload was cancelled"));
-      });
-
-      xhr.send(formData);
-    });
+    updateProgress(100);
+    fileInput.value = "";
+    await loadImages();
   } catch (error) {
     console.error("Upload failed:", error);
-    alert(error.message || "Something went wrong while uploading.");
+    alert(error.message || "Upload failed");
   } finally {
     uploadBtn.disabled = false;
     uploadBtn.textContent = "Select Files";
@@ -609,6 +576,61 @@ async function uploadFromFormData(formData) {
       resetProgress();
     }, 600);
   }
+}
+
+async function uploadSingleBatch(formData, onProgress) {
+  const galleryId = getGalleryId();
+  const csrfToken = await getCsrfToken();
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.open("POST", `/api/galleries/${galleryId}/upload`);
+    xhr.setRequestHeader("x-csrf-token", csrfToken);
+
+    xhr.upload.addEventListener("progress", (event) => {
+      if (!event.lengthComputable) return;
+
+      const percent = event.lengthComputable
+        ? (event.loaded / event.total) * 100
+        : 0;
+
+      onProgress(percent);
+    });
+
+    xhr.addEventListener("load", () => {
+      if (xhr.status === 401) {
+        window.location.href = "/login.html";
+        return;
+      }
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const data = JSON.parse(xhr.responseText);
+
+          if (data.ok) {
+            resolve();
+          } else {
+            reject(new Error(data.message || "Batch upload failed"));
+          }
+        } catch {
+          reject(new Error("Invalid server response"));
+        }
+      } else {
+        reject(new Error(`Upload failed with status ${xhr.status}`));
+      }
+    });
+
+    xhr.addEventListener("error", () => {
+      reject(new Error("Network error"));
+    });
+
+    xhr.addEventListener("abort", () => {
+      reject(new Error("Upload aborted"));
+    });
+
+    xhr.send(formData);
+  });
 }
 
 if (uploadBtn) {

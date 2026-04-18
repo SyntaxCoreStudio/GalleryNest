@@ -3,13 +3,22 @@ const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
 
-const allowedExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif"]);
+const allowedExtensions = new Set([
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".webp",
+  ".gif",
+  ".tif",
+  ".tiff",
+]);
 
 const allowedMimeTypes = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
   "image/gif",
+  "image/tiff",
 ]);
 
 const storage = multer.diskStorage({
@@ -43,22 +52,19 @@ const storage = multer.diskStorage({
 
 function fileFilter(req, file, cb) {
   const ext = path.extname(file.originalname).toLowerCase();
-  const isImageMime = file.mimetype.startsWith("image/");
-
-  if (!isImageMime) {
-    return cb(new Error("Only image files are allowed"), false);
-  }
 
   if (!allowedExtensions.has(ext)) {
     return cb(
-      new Error("Unsupported file extension. Use JPG, PNG, WEBP, or GIF."),
+      new Error(
+        "Unsupported file extension. Use JPG, PNG, WEBP, GIF, or TIFF.",
+      ),
       false,
     );
   }
 
   if (!allowedMimeTypes.has(file.mimetype)) {
     return cb(
-      new Error("Unsupported image format. Use JPG, PNG, WEBP, or GIF."),
+      new Error("Unsupported image format. Use JPG, PNG, WEBP, GIF, or TIFF."),
       false,
     );
   }
@@ -70,8 +76,8 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 25 * 1024 * 1024,
-    files: 50,
+    fileSize: 300 * 1024 * 1024,
+    files: 5,
   },
 });
 
