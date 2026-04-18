@@ -37,12 +37,12 @@ app.set("trust proxy", 1);
 const dataDir = path.join(__dirname, "data");
 fs.mkdirSync(dataDir, { recursive: true });
 
-const globalLimiter = rateLimit({
+const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 20,
   message: {
     ok: false,
-    message: "Too many requests, please try again later.",
+    message: "Too many login attempts, please try again later.",
   },
 });
 
@@ -122,7 +122,7 @@ app.get("/manage-gallery.html", (req, res) => {
 });
 
 app.use("/health", healthRoutes);
-app.use("/api/auth", globalLimiter, doubleCsrfProtection, authRoutes);
+app.use("/api/auth", authLimiter, doubleCsrfProtection, authRoutes);
 app.use("/api/galleries", doubleCsrfProtection, galleryRoutes);
 app.use("/api/images", doubleCsrfProtection, imageRoutes);
 app.use("/api/public", publicRoutes);
