@@ -251,7 +251,7 @@ async function uploadImages(req, res) {
       }
     }
 
-    return res.status(400).json({
+    return res.status(413).json({
       ok: false,
       message: "Upload would exceed your storage limit.",
       storageUsed,
