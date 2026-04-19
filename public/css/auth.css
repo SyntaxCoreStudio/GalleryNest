@@ -157,3 +157,64 @@ body {
 .back-home:hover {
   color: var(--primary, #b7794b);
 }
+
+.site-footer {
+  margin-top: 60px;
+  padding: 24px 20px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.9rem;
+
+  background: rgba(17, 24, 39, 0.6);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.site-footer nav {
+  margin-top: 10px;
+}
+
+.site-footer a {
+  color: #c084fc;
+  text-decoration: none;
+  margin: 0 10px;
+  font-weight: 500;
+  transition: opacity 0.2s ease;
+}
+
+.site-footer a:hover {
+  opacity: 0.75;
+}
+
+/* ===== Terms Checkbox ===== */
+
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  margin-bottom: 18px;
+  font-size: 0.9rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.checkbox-row input {
+  margin-top: 3px;
+  accent-color: #c084fc;
+  cursor: pointer;
+}
+
+.checkbox-row span {
+  display: inline-block;
+}
+
+.checkbox-row a {
+  color: #c084fc;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.checkbox-row a:hover {
+  text-decoration: underline;
+}

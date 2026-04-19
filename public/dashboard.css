@@ -319,6 +319,34 @@ body {
   transition: width 0.3s ease;
 }
 
+.site-footer {
+  margin-top: 60px;
+  padding: 24px 20px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.9rem;
+
+  background: rgba(17, 24, 39, 0.6);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.site-footer nav {
+  margin-top: 10px;
+}
+
+.site-footer a {
+  color: #c084fc;
+  text-decoration: none;
+  margin: 0 10px;
+  font-weight: 500;
+  transition: opacity 0.2s ease;
+}
+
+.site-footer a:hover {
+  opacity: 0.75;
+}
+
 @media (max-width: 720px) {
   .page-shell {
     padding: 24px 14px 40px;
