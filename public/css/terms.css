@@ -1,8 +1,8 @@
-.legal-page {
+.page {
   padding: 4rem 0 5rem;
 }
 
-.legal-card {
+.card {
   max-width: 900px;
   margin: 0 auto;
   background: var(--surface);
@@ -13,7 +13,7 @@
   padding: 2.5rem;
 }
 
-.legal-badge {
+.brand {
   display: inline-flex;
   align-items: center;
   padding: 0.45rem 0.85rem;
@@ -25,66 +25,55 @@
   margin-bottom: 1rem;
 }
 
-.legal-card h1 {
+.card h1 {
   margin: 0 0 0.75rem;
   font-size: clamp(2.1rem, 4vw, 3rem);
   line-height: 1.1;
   color: var(--text);
 }
 
-.legal-updated {
+.muted {
   margin: 0 0 1.75rem;
   color: var(--text-soft);
   font-size: 0.95rem;
 }
 
-.legal-intro {
-  font-size: 1.05rem;
-  color: var(--text-soft);
-  margin-bottom: 2rem;
-}
-
-.legal-section + .legal-section {
-  margin-top: 2rem;
-}
-
-.legal-section h2 {
-  margin: 0 0 0.75rem;
-  font-size: 1.2rem;
-  color: var(--text);
-}
-
-.legal-section p {
-  margin: 0 0 1rem;
+.card > p {
   color: var(--text-soft);
   line-height: 1.75;
 }
 
-.legal-section ul {
-  margin: 0;
+.card h2 {
+  margin: 2rem 0 0.75rem;
+  font-size: 1.2rem;
+  color: var(--text);
+}
+
+.card ul {
+  margin: 0 0 1rem;
   padding-left: 1.2rem;
   color: var(--text-soft);
 }
 
-.legal-section li + li {
+.card li + li {
   margin-top: 0.65rem;
 }
 
-.legal-card a {
+.card a {
   color: var(--primary);
   font-weight: 600;
 }
 
-.legal-card a:hover {
+.card a:hover {
   color: var(--primary-hover);
 }
 
 @media (max-width: 640px) {
-  .legal-page {
+  .page {
     padding: 2.5rem 0 4rem;
   }
 
-  .legal-card {
+  .card {
     padding: 1.5rem;
     border-radius: 22px;
   }
