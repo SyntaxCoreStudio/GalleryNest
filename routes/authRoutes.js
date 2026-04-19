@@ -29,12 +29,19 @@ const passwordResetLimiter = rateLimit({
 
 router.post("/signup", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, termsAccepted } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({
         ok: false,
         message: "Email and password are required",
+      });
+    }
+
+    if (!termsAccepted) {
+      return res.status(400).json({
+        ok: false,
+        message: "You must agree to the Terms of Use and Privacy Policy",
       });
     }
 

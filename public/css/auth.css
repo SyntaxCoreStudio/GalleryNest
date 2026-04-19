@@ -160,30 +160,40 @@ body {
 
 .site-footer {
   margin-top: 60px;
-  padding: 24px 20px;
+  padding: 28px 20px;
   text-align: center;
-  color: #94a3b8;
-  font-size: 0.9rem;
+  color: var(--text-soft);
+  font-size: 0.95rem;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(12px);
+}
 
-  background: rgba(17, 24, 39, 0.6);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+.site-footer p {
+  margin: 0;
+  color: var(--text-soft);
 }
 
 .site-footer nav {
-  margin-top: 10px;
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .site-footer a {
-  color: #c084fc;
-  text-decoration: none;
-  margin: 0 10px;
-  font-weight: 500;
-  transition: opacity 0.2s ease;
+  color: var(--text);
+  font-weight: 600;
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .site-footer a:hover {
-  opacity: 0.75;
+  color: var(--primary);
+  opacity: 1;
 }
 
 /* ===== Terms Checkbox ===== */
@@ -191,18 +201,19 @@ body {
 .checkbox-row {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  margin-top: 14px;
-  margin-bottom: 18px;
-  font-size: 0.9rem;
-  color: #94a3b8;
-  line-height: 1.4;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  margin-bottom: 1.2rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-soft);
 }
 
 .checkbox-row input {
-  margin-top: 3px;
-  accent-color: #c084fc;
+  margin-top: 0.2rem;
+  accent-color: var(--primary);
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .checkbox-row span {
@@ -210,11 +221,13 @@ body {
 }
 
 .checkbox-row a {
-  color: #c084fc;
+  color: var(--primary);
+  font-weight: 600;
   text-decoration: none;
-  font-weight: 500;
+  transition: color 0.2s ease;
 }
 
 .checkbox-row a:hover {
+  color: var(--primary-hover);
   text-decoration: underline;
 }

@@ -22,6 +22,7 @@
           required
           autocomplete="email"
         />
+
         <input
           type="password"
           id="password"
@@ -30,19 +31,26 @@
           minlength="8"
           autocomplete="new-password"
         />
+
+        <label class="checkbox-row">
+          <input type="checkbox" id="terms" required />
+          <span>
+            I agree to the
+            <a href="/terms.html" target="_blank" rel="noopener noreferrer"
+              >Terms of Use</a
+            >
+            and
+            <a href="/privacy.html" target="_blank" rel="noopener noreferrer"
+              >Privacy Policy</a
+            >
+          </span>
+        </label>
+
         <button type="submit">Create Account</button>
       </form>
 
-      <label class="checkbox-row">
-        <input type="checkbox" id="terms" required />
-        <span>
-          I agree to the
-          <a href="/terms.html" target="_blank">Terms of Use</a> and
-          <a href="/privacy.html" target="_blank">Privacy Policy</a>
-        </span>
-      </label>
-
       <p id="message"></p>
+
       <p class="auth-link">
         Already have an account? <a href="/login.html">Log in</a>
       </p>

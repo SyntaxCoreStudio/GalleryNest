@@ -51,9 +51,16 @@ async function apiFetch(url, options = {}) {
 
 const signupForm = document.getElementById("signup-form");
 const messageEl = document.getElementById("message");
+const termsCheckbox = document.getElementById("terms");
 
 signupForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+
+  if (!termsCheckbox.checked) {
+    messageEl.textContent =
+      "You must agree to the Terms of Use and Privacy Policy.";
+    return;
+  }
 
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
@@ -66,7 +73,11 @@ signupForm.addEventListener("submit", async (event) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({
+        email,
+        password,
+        termsAccepted: termsCheckbox.checked,
+      }),
     });
 
     const data = await response.json();
