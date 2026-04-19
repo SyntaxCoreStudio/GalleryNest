@@ -38,7 +38,9 @@ router.post("/signup", async (req, res) => {
       });
     }
 
-    if (!termsAccepted) {
+    const accepted = termsAccepted === true || termsAccepted === "true";
+
+    if (!accepted) {
       return res.status(400).json({
         ok: false,
         message: "You must agree to the Terms of Use and Privacy Policy",
