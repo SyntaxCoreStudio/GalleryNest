@@ -126,6 +126,18 @@ const hasResetTokenExpiresAt = userColumns.some(
   (col) => col.name === "reset_token_expires_at",
 );
 
+const hasStripeCustomerId = userColumns.some(
+  (col) => col.name === "stripe_customer_id",
+);
+
+const hasStripeSubscriptionId = userColumns.some(
+  (col) => col.name === "stripe_subscription_id",
+);
+
+const hasSubscriptionStatus = userColumns.some(
+  (col) => col.name === "subscription_status",
+);
+
 if (!hasPlan) {
   db.prepare(
     `
@@ -167,6 +179,33 @@ if (!hasResetTokenExpiresAt) {
     `
     ALTER TABLE users
     ADD COLUMN reset_token_expires_at TEXT
+  `,
+  ).run();
+}
+
+if (!hasStripeCustomerId) {
+  db.prepare(
+    `
+    ALTER TABLE users
+    ADD COLUMN stripe_customer_id TEXT
+  `,
+  ).run();
+}
+
+if (!hasStripeSubscriptionId) {
+  db.prepare(
+    `
+    ALTER TABLE users
+    ADD COLUMN stripe_subscription_id TEXT
+  `,
+  ).run();
+}
+
+if (!hasSubscriptionStatus) {
+  db.prepare(
+    `
+    ALTER TABLE users
+    ADD COLUMN subscription_status TEXT DEFAULT 'free'
   `,
   ).run();
 }
