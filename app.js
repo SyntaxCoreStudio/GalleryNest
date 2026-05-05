@@ -22,6 +22,8 @@ const authRoutes = require("./routes/authRoutes");
 const galleryRoutes = require("./routes/galleryRoutes");
 const imageRoutes = require("./routes/imageRoutes");
 const publicRoutes = require("./routes/publicRoutes");
+const stripeWebhookRoutes = require("./routes/stripeWebhookRoutes");
+const billingRoutes = require("./routes/billingRoutes");
 const notFound = require("./middleware/notFound");
 const errorHandler = require("./middleware/errorHandler");
 const {
@@ -53,6 +55,8 @@ app.use(
     referrerPolicy: { policy: "no-referrer" },
   }),
 );
+
+app.use("/api/stripe", stripeWebhookRoutes);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -126,6 +130,8 @@ app.use("/api/auth", doubleCsrfProtection, authRoutes);
 app.use("/api/galleries", doubleCsrfProtection, galleryRoutes);
 app.use("/api/images", doubleCsrfProtection, imageRoutes);
 app.use("/api/public", publicRoutes);
+
+app.use("/api/billing", doubleCsrfProtection, billingRoutes);
 
 app.use(csrfErrorHandler);
 app.use(notFound);

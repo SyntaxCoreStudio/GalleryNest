@@ -20,6 +20,12 @@ const env = {
 
   maxFileSizeMb: toInt(process.env.MAX_FILE_SIZE_MB, 25),
   uploadLimitPerRequest: toInt(process.env.UPLOAD_LIMIT_PER_REQUEST, 50),
+
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY,
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+  stripePricePro: process.env.STRIPE_PRICE_PRO,
+  stripePriceBusiness: process.env.STRIPE_PRICE_BUSINESS,
+  appUrl: process.env.APP_URL,
 };
 
 if (!env.sessionSecret || env.sessionSecret.length < 32) {

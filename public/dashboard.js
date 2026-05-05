@@ -274,4 +274,46 @@ async function initDashboard() {
   await loadGalleries();
 }
 
+async function loadCsrfToken() {
+  const res = await fetch("/api/csrf-token");
+  const data = await res.json();
+  window.csrfToken = data.csrfToken;
+}
+
+loadCsrfToken();
+
+async function startCheckout(plan) {
+  try {
+    const res = await apiFetch("/api/billing/create-checkout-session", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ plan }),
+    });
+
+    const data = await res.json();
+
+    if (!data.ok) {
+      alert(data.message || "Checkout failed");
+      return;
+    }
+
+    window.location.href = data.url;
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong");
+  }
+}
+
+const params = new URLSearchParams(window.location.search);
+
+if (params.get("payment") === "success") {
+  alert("Payment successful. Your plan will update shortly.");
+}
+
+if (params.get("payment") === "cancelled") {
+  alert("Payment cancelled.");
+}
+
 initDashboard();
