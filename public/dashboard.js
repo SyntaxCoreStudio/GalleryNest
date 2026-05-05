@@ -306,6 +306,21 @@ async function startCheckout(plan) {
   }
 }
 
+const upgradeProBtn = document.getElementById("upgrade-pro-btn");
+const upgradeBusinessBtn = document.getElementById("upgrade-business-btn");
+
+if (upgradeProBtn) {
+  upgradeProBtn.addEventListener("click", () => {
+    startCheckout("pro");
+  });
+}
+
+if (upgradeBusinessBtn) {
+  upgradeBusinessBtn.addEventListener("click", () => {
+    startCheckout("business");
+  });
+}
+
 const params = new URLSearchParams(window.location.search);
 
 if (params.get("payment") === "success") {
