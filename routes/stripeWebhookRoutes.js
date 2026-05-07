@@ -25,6 +25,8 @@ router.post(
         signature,
         env.stripeWebhookSecret,
       );
+
+      console.log("Stripe webhook received:", event.type);
     } catch (error) {
       console.error("Stripe webhook signature error:", error.message);
       return res.status(400).send(`Webhook Error: ${error.message}`);
@@ -39,12 +41,13 @@ router.post(
 
         db.prepare(
           `
-                    UPDATE users
-                    SET plan = ?,
-                    storage_limit = ?,
-                    subscription_status = ?
-                    WHERE id = ?
-                    `,
+          UPDATE users
+          SET plan = ?,
+              storage_limit = ?,
+              stripe_subscription_id = ?,
+              subscription_status = ?
+          WHERE id = ?
+        `,
         ).run(
           plan,
           storageLimits[plan] || storageLimits.free,
@@ -59,13 +62,13 @@ router.post(
 
         db.prepare(
           `
-                    UPDATE users
-                    SET plan = 'free',
-                    storage_limit = ?,
-                    stripeSubscription_id = NULL,
-                    subscription_status = 'cancelled'
-                    WHERE stripe_subscription_id = ?
-                    `,
+          UPDATE users
+          SET plan = 'free',
+              storage_limit = ?,
+              stripe_subscription_id = NULL,
+              subscription_status = 'cancelled'
+          WHERE stripe_subscription_id = ?
+        `,
         ).run(storageLimits.free, subscription.id);
       }
 
@@ -75,12 +78,12 @@ router.post(
 
         db.prepare(
           `
-                    UPDATE users
-                    SET plan = ?,
-                    storage_limit = ?,
-                    subscription_status = ?
-                    WHERE stripe_subscription_is = ?
-                    `,
+          UPDATE users
+          SET plan = ?,
+              storage_limit = ?,
+              subscription_status = ?
+          WHERE stripe_subscription_id = ?
+        `,
         ).run(
           plan,
           storageLimits[plan] || storageLimits.free,
