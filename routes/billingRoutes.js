@@ -39,20 +39,28 @@ router.post("/create-checkout-session", requireAuth, async (req, res) => {
 
     let customerId = user.stripe_customer_id;
 
+    try {
+      if (customerId) {
+        await stripe.customers.retrieve(customerId);
+      }
+    } catch {
+      customerId = null;
+    }
+
     if (!customerId) {
       const customer = await stripe.customers.create({
         email: user.email,
-        metadata: {
-          userId: user.id,
-        },
       });
 
       customerId = customer.id;
 
-      db.prepare("UPDATE users SET stripe_customer_id = ? WHERE id = ?").run(
-        customerId,
-        user.id,
-      );
+      db.prepare(
+        `
+    UPDATE users
+    SET stripe_customer_id = ?
+    WHERE id = ?
+  `,
+      ).run(customerId, user.id);
     }
 
     const session = await stripe.checkout.sessions.create({
