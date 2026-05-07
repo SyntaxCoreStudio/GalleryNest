@@ -41,7 +41,7 @@ router.post(
           `
                     UPDATE users
                     SET plan = ?,
-                    stripe_limit = ?,
+                    storage_limit = ?,
                     subscription_status = ?
                     WHERE id = ?
                     `,
