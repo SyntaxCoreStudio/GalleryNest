@@ -357,6 +357,53 @@ body {
   opacity: 1;
 }
 
+.plan-card {
+  margin-bottom: 1rem;
+}
+
+.plan-card button {
+  width: 100%;
+  border: none;
+  border-radius: 18px;
+  padding: 1rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+/* Pro Button */
+#upgrade-pro-btn {
+  background: linear-gradient(135deg, #c47a45, #e0a06a);
+  color: white;
+  box-shadow: 0 12px 25px rgba(196, 122, 69, 0.25);
+}
+
+#upgrade-pro-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(196, 122, 69, 0.35);
+}
+
+/* Business Button */
+#upgrade-business-btn {
+  background: linear-gradient(135deg, #2f2f34, #4a4a52);
+  color: white;
+  box-shadow: 0 12px 25px rgba(30, 30, 35, 0.25);
+}
+
+#upgrade-business-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(30, 30, 35, 0.35);
+}
+
+/* Active Click */
+.plan-card button:active {
+  transform: scale(0.98);
+}
+
 @media (max-width: 720px) {
   .page-shell {
     padding: 24px 14px 40px;
