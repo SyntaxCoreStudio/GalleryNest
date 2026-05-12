@@ -331,4 +331,23 @@ if (params.get("payment") === "cancelled") {
   alert("Payment cancelled.");
 }
 
+const accountMenuBtn = document.getElementById("account-menu-btn");
+const accountDropdown = document.getElementById("account-dropdown");
+
+if (accountMenuBtn && accountDropdown) {
+  accountMenuBtn.addEventListener("click", () => {
+    accountDropdown.classList.toggle("open");
+  });
+
+  document.addEventListener("click", (event) => {
+    const clickedInsideMenu =
+      accountMenuBtn.contains(event.target) ||
+      accountDropdown.contains(event.target);
+
+    if (!clickedInsideMenu) {
+      accountDropdown.classList.remove("open");
+    }
+  });
+}
+
 initDashboard();

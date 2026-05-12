@@ -16,7 +16,34 @@
 
         <div class="topbar-actions">
           <p id="session-status">Checking session...</p>
-          <button id="logout-btn" type="button">Logout</button>
+
+          <div class="account-menu">
+            <button
+              id="account-menu-btn"
+              class="account-menu-btn"
+              type="button"
+            >
+              Account ▾
+            </button>
+
+            <div id="account-dropdown" class="account-dropdown">
+              <button type="button" id="upgrade-pro-btn">
+                Upgrade to Pro
+                <span>20GB storage</span>
+              </button>
+
+              <button type="button" id="upgrade-business-btn">
+                Upgrade to Business
+                <span>100GB storage</span>
+              </button>
+
+              <div class="dropdown-divider"></div>
+
+              <button type="button" id="logout-btn" class="logout-option">
+                Logout
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -25,28 +52,6 @@
           <div>
             <h2>Storage usage</h2>
           </div>
-        </div>
-
-        <div class="plan-card">
-          <button type="button" id="upgrade-pro-btn">
-            <div class="plan-info">
-              <span class="plan-name">Pro Plan</span>
-              <span class="plan-storage">20GB storage</span>
-            </div>
-
-            <span class="plan-price">$8/mo</span>
-          </button>
-        </div>
-
-        <div class="plan-card">
-          <button type="button" id="upgrade-business-btn">
-            <div class="plan-info">
-              <span class="plan-name">Business Plan</span>
-              <span class="plan-storage">100GB storage</span>
-            </div>
-
-            <span class="plan-price">$15/mo</span>
-          </button>
         </div>
 
         <div class="storage-card">

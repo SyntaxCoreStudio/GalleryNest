@@ -357,87 +357,75 @@ body {
   opacity: 1;
 }
 
-.plan-card {
-  margin-bottom: 1rem;
+.account-menu {
+  position: relative;
 }
 
-.plan-card button {
+.account-menu-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 0.85rem 1.2rem;
+  background: #241d1a;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.account-dropdown {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+
+  width: 240px;
+  padding: 0.6rem;
+
+  background: #ffffff;
+  border: 1px solid #eadfd8;
+  border-radius: 18px;
+  box-shadow: 0 20px 45px rgba(48, 32, 24, 0.15);
+
+  display: none;
+  z-index: 50;
+}
+
+.account-dropdown.open {
+  display: block;
+}
+
+.account-dropdown button {
   width: 100%;
   border: none;
-  border-radius: 18px;
-  padding: 1rem 1.2rem;
-  font-size: 1rem;
+  background: transparent;
+  border-radius: 12px;
+  padding: 0.85rem 0.9rem;
+
+  text-align: left;
   font-weight: 700;
-  cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    background 0.2s ease;
-}
-.plan-card {
-  margin-bottom: 1rem;
-}
-
-.plan-card button {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  padding: 1rem 1.25rem;
-
-  border-radius: 18px;
-  border: 1px solid #e5ddd6;
-
-  background: rgba(255, 255, 255, 0.7);
-
-  backdrop-filter: blur(10px);
-
-  cursor: pointer;
-
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    background 0.2s ease;
-
   color: #241d1a;
+
+  cursor: pointer;
 }
 
-.plan-card button:hover {
-  transform: translateY(-2px);
-  border-color: #c47a45;
-  background: rgba(255, 255, 255, 0.95);
+.account-dropdown button:hover {
+  background: #f7f1ed;
 }
 
-/* Left content */
-.plan-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.plan-name {
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.plan-storage {
-  font-size: 0.9rem;
-  color: #6f625a;
+.account-dropdown button span {
+  display: block;
   margin-top: 0.2rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #6f625a;
 }
 
-/* Price badge */
-.plan-price {
-  background: #f3ece6;
-  color: #9b6339;
+.dropdown-divider {
+  height: 1px;
+  background: #eadfd8;
+  margin: 0.4rem 0;
+}
 
-  padding: 0.45rem 0.8rem;
-
-  border-radius: 999px;
-
-  font-size: 0.85rem;
-  font-weight: 700;
+.logout-option {
+  color: #9b2c2c !important;
 }
 
 @media (max-width: 720px) {
