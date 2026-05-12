@@ -374,34 +374,70 @@ body {
     box-shadow 0.2s ease,
     background 0.2s ease;
 }
-
-/* Pro Button */
-#upgrade-pro-btn {
-  background: linear-gradient(135deg, #c47a45, #e0a06a);
-  color: white;
-  box-shadow: 0 12px 25px rgba(196, 122, 69, 0.25);
+.plan-card {
+  margin-bottom: 1rem;
 }
 
-#upgrade-pro-btn:hover {
+.plan-card button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 1rem 1.25rem;
+
+  border-radius: 18px;
+  border: 1px solid #e5ddd6;
+
+  background: rgba(255, 255, 255, 0.7);
+
+  backdrop-filter: blur(10px);
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+
+  color: #241d1a;
+}
+
+.plan-card button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 16px 30px rgba(196, 122, 69, 0.35);
+  border-color: #c47a45;
+  background: rgba(255, 255, 255, 0.95);
 }
 
-/* Business Button */
-#upgrade-business-btn {
-  background: linear-gradient(135deg, #2f2f34, #4a4a52);
-  color: white;
-  box-shadow: 0 12px 25px rgba(30, 30, 35, 0.25);
+/* Left content */
+.plan-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-#upgrade-business-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 30px rgba(30, 30, 35, 0.35);
+.plan-name {
+  font-size: 1rem;
+  font-weight: 700;
 }
 
-/* Active Click */
-.plan-card button:active {
-  transform: scale(0.98);
+.plan-storage {
+  font-size: 0.9rem;
+  color: #6f625a;
+  margin-top: 0.2rem;
+}
+
+/* Price badge */
+.plan-price {
+  background: #f3ece6;
+  color: #9b6339;
+
+  padding: 0.45rem 0.8rem;
+
+  border-radius: 999px;
+
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 @media (max-width: 720px) {
