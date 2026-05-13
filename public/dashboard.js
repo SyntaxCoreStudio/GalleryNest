@@ -57,6 +57,9 @@ const createGalleryBtn = document.getElementById("create-gallery-btn");
 const logoutBtn = document.getElementById("logout-btn");
 const sessionStatusEl = document.getElementById("session-status");
 
+const upgradeProBtn = document.getElementById("upgrade-pro-btn");
+const upgradeBusinessBtn = document.getElementById("upgrade-business-btn");
+
 const storagePlanEl = document.getElementById("storage-plan");
 const storageLabelEl = document.getElementById("storage-label");
 const storagePercentEl = document.getElementById("storage-percent");
@@ -78,6 +81,31 @@ function formatPlanName(plan) {
   return `${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan`;
 }
 
+function updateUpgradeButtons(user) {
+  const plan = user.plan || "free";
+
+  if (plan === "business") {
+    upgradeProBtn?.remove();
+    upgradeBusinessBtn?.remove();
+    return;
+  }
+
+  if (plan === "pro") {
+    upgradeProBtn?.remove();
+
+    if (upgradeBusinessBtn) {
+      upgradeBusinessBtn.innerHTML = `
+        Upgrade to Business
+        <span>100GB storage</span>
+      `;
+    }
+
+    return;
+  }
+
+  // Free users see both buttons
+}
+
 async function checkSession() {
   try {
     const response = await fetch("/api/auth/me");
@@ -89,6 +117,7 @@ async function checkSession() {
     }
 
     sessionStatusEl.textContent = `Logged in as ${data.user.email}`;
+    updateUpgradeButtons(data.user);
     return true;
   } catch (error) {
     console.error("Session check failed:", error);
@@ -299,15 +328,18 @@ async function startCheckout(plan) {
       return;
     }
 
+    if (data.updated) {
+      alert("Subscription updated successfully.");
+      window.location.reload();
+      return;
+    }
+
     window.location.href = data.url;
   } catch (err) {
     console.error(err);
     alert("Something went wrong");
   }
 }
-
-const upgradeProBtn = document.getElementById("upgrade-pro-btn");
-const upgradeBusinessBtn = document.getElementById("upgrade-business-btn");
 
 if (upgradeProBtn) {
   upgradeProBtn.addEventListener("click", () => {

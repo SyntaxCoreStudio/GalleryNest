@@ -27,13 +27,39 @@ router.post("/create-checkout-session", requireAuth, async (req, res) => {
     }
 
     const user = db
-      .prepare("SELECT id, email, stripe_customer_id FROM users WHERE id = ?")
+      .prepare(
+        `
+        SELECT
+          id,
+          email,
+          stripe_customer_id,
+          stripe_subscription_id,
+          subscription_status,
+          plan
+        FROM users
+        WHERE id = ?
+        `,
+      )
       .get(req.session.user.id);
 
     if (!user) {
       return res.status(401).json({
         ok: false,
         message: "User not found.",
+      });
+    }
+
+    if (user.plan === "business") {
+      return res.status(400).json({
+        ok: false,
+        message: "You are already on the highest plan.",
+      });
+    }
+
+    if (user.plan === "pro" && plan === "pro") {
+      return res.status(400).json({
+        ok: false,
+        message: "You are already on the Pro plan.",
       });
     }
 
@@ -56,13 +82,41 @@ router.post("/create-checkout-session", requireAuth, async (req, res) => {
 
       db.prepare(
         `
-    UPDATE users
-    SET stripe_customer_id = ?
-    WHERE id = ?
-  `,
+        UPDATE users
+        SET stripe_customer_id = ?
+        WHERE id = ?
+        `,
       ).run(customerId, user.id);
     }
 
+    // Existing paid user: update their current Stripe subscription
+    if (user.stripe_subscription_id && user.subscription_status === "active") {
+      const subscription = await stripe.subscriptions.retrieve(
+        user.stripe_subscription_id,
+      );
+
+      await stripe.subscriptions.update(user.stripe_subscription_id, {
+        items: [
+          {
+            id: subscription.items.data[0].id,
+            price: plans[plan].priceId,
+          },
+        ],
+        proration_behavior: "create_prorations",
+        metadata: {
+          userId: user.id,
+          plan,
+        },
+      });
+
+      return res.json({
+        ok: true,
+        updated: true,
+        message: "Subscription updated successfully.",
+      });
+    }
+
+    // New paid user: create checkout session
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
@@ -92,6 +146,7 @@ router.post("/create-checkout-session", requireAuth, async (req, res) => {
     });
   } catch (error) {
     console.error("Create checkout session error:", error);
+
     return res.status(500).json({
       ok: false,
       message: "Could not start checkout.",
