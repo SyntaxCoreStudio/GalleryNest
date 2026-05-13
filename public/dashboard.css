@@ -446,3 +446,26 @@ body {
     width: 100%;
   }
 }
+
+@media (max-width: 600px) {
+  .topbar-actions {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .account-menu {
+    width: 100%;
+  }
+
+  .account-menu-btn {
+    width: 100%;
+  }
+
+  .account-dropdown {
+    position: fixed;
+    top: 5.5rem;
+    left: 1rem;
+    right: 1rem;
+    width: auto;
+  }
+}
